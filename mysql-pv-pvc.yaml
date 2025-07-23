@@ -1,49 +1,27 @@
-# --- PersistentVolume (PV) Definition ---
-# O PV representa um pedaço de armazenamento físico no cluster.
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  # Nome do PersistentVolume.
   name: mysql-pv
-  # Labels podem ser usados para agrupar e selecionar PVs.
   labels:
     type: local
 spec:
-  # storageClassName 'manual' indica que este PV deve ser ligado
-  # manualmente a um PVC que o solicite, em vez de ser provisionado dinamicamente.
   storageClassName: manual
-  # capacity define a quantidade de armazenamento disponível no volume.
   capacity:
-    storage: 1Gi # 1 Gibibyte de armazenamento.
-  # accessModes define como o volume pode ser montado.
-  # ReadWriteOnce: pode ser montado como leitura e escrita por um único nó.
-  # Ideal para um banco de dados de instância única.
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  # hostPath especifica que o volume utiliza um diretório no nó hospedeiro.
-  # ATENÇÃO: Adequado apenas para clusters de nó único como o Minikube.
   hostPath:
-    # O caminho no sistema de arquivos do nó onde os dados serão armazenados.
-    # Este diretório deve existir no nó do Minikube.
     path: "/mnt/data/mysql"
 
 ---
-# --- PersistentVolumeClaim (PVC) Definition ---
-# O PVC é uma solicitação de armazenamento feita por uma aplicação.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  # Nome do PersistentVolumeClaim, que será referenciado pelo Deployment.
   name: mysql-pvc
 spec:
-  # storageClassName 'manual' para garantir que este PVC se ligue
-  # ao nosso PV definido manualmente.
   storageClassName: manual
-  # accessModes deve corresponder aos modos de acesso do PV.
   accessModes:
     - ReadWriteOnce
-  # resources.requests especifica a quantidade de armazenamento que a aplicação solicita.
-  # O Kubernetes encontrará um PV que satisfaça esta solicitação.
   resources:
     requests:
-      storage: 1Gi # Solicita 1 Gibibyte de armazenamento.
+      storage: 1Gi

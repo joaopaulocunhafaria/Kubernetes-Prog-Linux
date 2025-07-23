@@ -3,16 +3,10 @@ kind: Service
 metadata:
   name: adminer-service
 spec:
-  # type 'NodePort' expõe o serviço em uma porta estática em cada nó.
   type: NodePort
   selector:
-    # Corresponde aos labels dos Pods do Adminer.
     app: adminer
   ports:
   - protocol: TCP
-    # A porta interna do serviço.
     port: 8080
-    # A porta no contêiner para a qual o tráfego é direcionado.
     targetPort: 8080
-    # O Kubernetes alocará automaticamente uma porta no intervalo 30000-32767
-    # se não for especificada. Esta será a porta usada para acesso externo.
