@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # Nome do Service. Este nome será usado como o hostname DNS para
+  # outras aplicações (como o Adminer) se conectarem ao MySQL.
+  name: mysql-service
+spec:
+  # type define o tipo de serviço. ClusterIP é o padrão e expõe o
+  # serviço em um IP interno ao cluster.
+  type: ClusterIP
+  # selector define o conjunto de Pods que este serviço irá direcionar.
+  # Ele deve corresponder aos labels dos Pods do MySQL.
+  selector:
+    app: mysql
+  # ports define as portas do serviço.
+  ports:
+  - protocol: TCP
+    # A porta que o serviço expõe.
+    port: 3306
+    # A porta nos Pods para a qual o tráfego será encaminhado.
+    targetPort: 3306

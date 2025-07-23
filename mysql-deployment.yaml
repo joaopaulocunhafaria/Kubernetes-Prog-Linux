@@ -1,0 +1,91 @@
+# apiVersion para Deployments é apps/v1, que é a versão estável.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Nome do Deployment.
+  name: mysql-deployment
+  # Labels para identificar e agrupar este Deployment.
+  labels:
+    app: mysql
+spec:
+  # replicas define o número de Pods idênticos a serem mantidos.
+  # Para um banco de dados de instância única, usamos 1.
+  replicas: 1
+  # selector define como o Deployment encontra os Pods que ele deve gerenciar.
+  # Deve corresponder aos labels definidos no template do Pod.
+  selector:
+    matchLabels:
+      app: mysql
+  # template descreve os Pods que serão criados.
+  template:
+    metadata:
+      # Labels aplicados a cada Pod criado por este Deployment.
+      labels:
+        app: mysql
+    spec:
+      # containers é uma lista de um ou mais contêineres a serem executados no Pod.
+      containers:
+      - name: mysql
+        # A imagem de contêiner a ser usada. É uma boa prática fixar uma versão
+        # específica em vez de usar 'latest'.
+        image: mysql:8.0
+        # ports define as portas que o contêiner expõe.
+        ports:
+        - containerPort: 3306 # Porta padrão do MySQL.
+        # env define as variáveis de ambiente para o contêiner.
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          # valueFrom permite obter o valor da variável de outra fonte,
+          # neste caso, de um Secret.
+          valueFrom:
+            # secretKeyRef seleciona uma chave específica de um Secret.
+            secretKeyRef:
+              # O nome do Secret que criamos anteriormente.
+              name: mysql-secret
+              # A chave dentro do Secret cujo valor queremos usar.
+              key: MYSQL_ROOT_PASSWORD
+        # resources define os requisitos e limites de recursos (CPU e memória).
+        resources:
+          # requests são os recursos mínimos garantidos para o contêiner.
+          # O Kubernetes só agendará o Pod em um nó que possa fornecer esses recursos.
+          requests:
+            memory: "256Mi" # 256 Mebibytes de RAM.
+            cpu: "250m"    # 250 millicores (0.25 de um núcleo de CPU).
+          # limits são os recursos máximos que o contêiner pode consumir.
+          # Isso evita que um contêiner monopolize os recursos do nó.
+          limits:
+            memory: "512Mi" # 512 Mebibytes de RAM.
+            cpu: "500m"    # 500 millicores (0.5 de um núcleo de CPU).
+        # livenessProbe verifica se o contêiner está "vivo". Se a sonda falhar,
+        # o Kubernetes reiniciará o contêiner.
+        livenessProbe:
+          exec:
+            # Comando executado dentro do contêiner para verificar sua saúde.
+            command:
+          # Atraso inicial antes da primeira sonda ser executada.
+          initialDelaySeconds: 30
+          # Período entre as execuções da sonda.
+          periodSeconds: 10
+          # Tempo limite para a execução do comando.
+          timeoutSeconds: 5
+        # readinessProbe verifica se o contêiner está pronto para receber tráfego.
+        # Se a sonda falhar, o Pod é removido dos endpoints do Service.
+        readinessProbe:
+          exec:
+            command:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+        # volumeMounts define onde montar os volumes dentro do contêiner.
+        volumeMounts:
+        - name: mysql-persistent-storage
+          # O caminho dentro do contêiner onde o volume será montado.
+          # /var/lib/mysql é o diretório de dados padrão do MySQL.
+          mountPath: /var/lib/mysql
+      # volumes define os volumes que estão disponíveis para o Pod.
+      volumes:
+      - name: mysql-persistent-storage
+        # persistentVolumeClaim especifica que este volume é um PVC.
+        persistentVolumeClaim:
+          # O nome do PVC que criamos anteriormente.
+          claimName: mysql-pvc
